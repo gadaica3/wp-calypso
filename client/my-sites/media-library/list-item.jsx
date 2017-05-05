@@ -29,6 +29,7 @@ export default React.createClass( {
 		scale: React.PropTypes.number.isRequired,
 		maxImageWidth: React.PropTypes.number,
 		photon: React.PropTypes.bool,
+		thumbnailSize: React.PropTypes.string,
 		showGalleryHelp: React.PropTypes.bool,
 		selectedIndex: React.PropTypes.number,
 		onToggle: React.PropTypes.func,
@@ -42,7 +43,8 @@ export default React.createClass( {
 			photon: true,
 			selectedIndex: -1,
 			onToggle: noop,
-			onEditItem: noop
+			onEditItem: noop,
+			thumbnailSize: '',
 		};
 	},
 

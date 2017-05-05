@@ -15,7 +15,9 @@ module.exports = React.createClass( {
 
 	propTypes: {
 		media: React.PropTypes.object,
-		maxImageWidth: React.PropTypes.number
+		maxImageWidth: React.PropTypes.number,
+		photon: React.PropTypes.bool,
+		thumbnailSize: React.PropTypes.string,
 	},
 
 	getDefaultProps: function() {
@@ -32,14 +34,19 @@ module.exports = React.createClass( {
 		}
 	},
 
+	shouldUsePhoton() {
+		if ( this.props.photon || ! this.props.thumbnailSize ) {
+			return true;
+		}
+
+		return false;
+	},
+
 	render: function() {
-		var thumbnail = this.getHighestQualityThumbnail(),
-			url;
+		const thumbnail = this.getHighestQualityThumbnail();
 
 		if ( thumbnail ) {
-			// All thumbnails extracted from the media should be accessible via
-			// Photon, so we don't concern ourselves with the boolean prop
-			url = photon( thumbnail, { width: this.props.maxImageWidth } );
+			const url = this.shouldUsePhoton() ? photon( thumbnail, { width: this.props.maxImageWidth } ) : thumbnail;
 
 			return (
 				<div className="media-library__list-item-video" style={ { backgroundImage: 'url(' + url + ')' } }>

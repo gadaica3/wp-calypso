@@ -16,13 +16,15 @@ module.exports = React.createClass( {
 		media: React.PropTypes.object,
 		scale: React.PropTypes.number,
 		maxImageWidth: React.PropTypes.number,
-		photon: React.PropTypes.bool
+		photon: React.PropTypes.bool,
+		thumbnailSize: React.PropTypes.string,
 	},
 
 	getDefaultProps: function() {
 		return {
 			maxImageWidth: 450,
-			photon: true
+			photon: true,
+			thumbnailSize: '',
 		};
 	},
 
@@ -77,7 +79,8 @@ module.exports = React.createClass( {
 	render: function() {
 		var url = MediaUtils.url( this.props.media, {
 			photon: this.props.photon,
-			maxWidth: this.props.maxImageWidth
+			maxWidth: this.props.maxImageWidth,
+			size: this.props.thumbnailSize,
 		} );
 
 		if ( ! url ) {

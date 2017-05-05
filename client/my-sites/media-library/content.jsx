@@ -160,6 +160,22 @@ const MediaLibraryContent = React.createClass( {
 		analytics.tracks.recordEvent( tracksEvent, tracksData );
 	},
 
+	usePhotonForImages() {
+		if ( this.props.site.is_private || this.props.source !== 'wpcom' ) {
+			return false;
+		}
+
+		return true;
+	},
+
+	getThumbnailSize() {
+		if ( this.props.source !== 'wpcom' ) {
+			return 'medium';
+		}
+
+		return '';
+	},
+
 	renderMediaList: function() {
 		if ( ! this.props.site ) {
 			return <MediaLibraryList key="list-loading" />;
@@ -175,7 +191,8 @@ const MediaLibraryContent = React.createClass( {
 						filterRequiresUpgrade={ this.props.filterRequiresUpgrade }
 						search={ this.props.search }
 						containerWidth={ this.props.containerWidth }
-						photon={ ! this.props.site.is_private }
+						photon={ this.usePhotonForImages() }
+						thumbnailSize={ this.getThumbnailSize() }
 						single={ this.props.single }
 						scrollable={ this.props.scrollable }
 						onEditItem={ this.props.onEditItem } />
