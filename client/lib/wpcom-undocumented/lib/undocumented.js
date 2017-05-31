@@ -2297,6 +2297,12 @@ Undocumented.prototype.initiateTransfer = function( siteId, plugin, theme, onPro
 	} );
 };
 
+Undocumented.prototype.externalMediaList = function( query, fn ) {
+	debug( `/meta/external-media/${ query.source }` );
+
+	return this.wpcom.req.get( `/meta/external-media/${ query.source }`, query, fn );
+};
+
 /**
  * Fetch the status of an Automated Transfer.
  *
