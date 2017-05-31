@@ -9,6 +9,8 @@ import head from 'lodash/head';
 import values from 'lodash/values';
 import mapValues from 'lodash/mapValues';
 import groupBy from 'lodash/groupBy';
+import toArray from 'lodash/toArray';
+import some from 'lodash/some';
 
 /**
  * Internal dependencies
@@ -32,6 +34,7 @@ const MediaLibraryContent = React.createClass( {
 		filter: React.PropTypes.string,
 		filterRequiresUpgrade: React.PropTypes.bool,
 		search: React.PropTypes.string,
+		source: React.PropTypes.string,
 		containerWidth: React.PropTypes.number,
 		single: React.PropTypes.bool,
 		scrollable: React.PropTypes.bool,
@@ -181,8 +184,16 @@ const MediaLibraryContent = React.createClass( {
 			return <MediaLibraryList key="list-loading" />;
 		}
 
+		if ( this.props.source !== 'wpcom' && ! some( this.props.connectedServices, item => item.service === this.props.source ) ) {
+			return (
+				<div>
+					<p>You will need to connect your account to view your media. Go to the Sharing tab.</p>
+				</div>
+			);
+		}
+
 		return (
-			<MediaListData siteId={ this.props.site.ID } filter={ this.props.filter } search={ this.props.search }>
+			<MediaListData siteId={ this.props.site.ID } filter={ this.props.filter } search={ this.props.search } source={ this.props.source }>
 				<MediaLibrarySelectedData siteId={ this.props.site.ID }>
 					<MediaLibraryList
 						key={ 'list-' + ( [ this.props.site.ID, this.props.search, this.props.filter ].join() ) }
@@ -208,6 +219,7 @@ const MediaLibraryContent = React.createClass( {
 					<MediaLibraryHeader
 						site={ this.props.site }
 						filter={ this.props.filter }
+						source={ this.props.source }
 						onMediaScaleChange={ this.props.onMediaScaleChange }
 						onAddMedia={ this.props.onAddMedia }
 						onAddAndEditImage={ this.props.onAddAndEditImage }
@@ -226,6 +238,7 @@ const MediaLibraryContent = React.createClass( {
 
 export default connect( ( state, ownProps ) => {
 	return {
+		connectedServices: toArray( state.sharing.keyring.items ).filter( item => item.type === 'other' && item.status === 'ok' ),
 		siteSlug: ownProps.site ? getSiteSlug( state, ownProps.site.ID ) : ''
 	};
 }, null, null, { pure: false } )( MediaLibraryContent );

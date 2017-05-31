@@ -125,6 +125,7 @@ export class EditorMediaModal extends Component {
 		return {
 			filter: '',
 			detailSelectedIndex: 0,
+			source: 'wpcom',  // XXX constant
 			gallerySettings: props.initialGallerySettings
 		};
 	}
@@ -143,7 +144,17 @@ export class EditorMediaModal extends Component {
 				settings: this.state.gallerySettings
 			} : undefined;
 
-		this.props.onClose( value );
+		if ( value && this.state.source !== 'wpcom' ) {
+			const targetSource = this.state.source;
+
+			this.onSourceChange( 'wpcom' );
+			// XXX needs to happen after state change
+			setTimeout( () => {
+				MediaActions.addExternal( this.props.site.ID, mediaLibrarySelectedItems, targetSource );
+			}, 200 );
+		} else {
+			this.props.onClose( value );
+		}
 	};
 
 	setDetailSelectedIndex = index => {
@@ -301,6 +312,13 @@ export class EditorMediaModal extends Component {
 		}
 	};
 
+	onSourceChange = source => {
+		const { site } = this.props;
+
+		this.setState( { source } );
+		MediaActions.changeSource( site.ID, source );
+	};
+
 	onClose = () => {
 		this.props.onClose();
 	};
@@ -351,7 +369,15 @@ export class EditorMediaModal extends Component {
 			}
 		];
 
-		if ( ModalViews.GALLERY !== this.props.view && selectedItems.length > 1 &&
+		if ( this.state.source !== 'wpcom' ) {
+			buttons.push( {
+				action: 'confirm',
+				label: this.props.labels.confirm || this.props.translate( 'Copy to media library' ),
+				isPrimary: true,
+				disabled: isDisabled || 0 === selectedItems.length,
+				onClick: this.confirmSelection
+			} );
+		} else if ( ModalViews.GALLERY !== this.props.view && selectedItems.length > 1 &&
 				! some( selectedItems, ( item ) => MediaUtils.getMimePrefix( item ) !== 'image' ) ) {
 			buttons.push( {
 				action: 'confirm',
@@ -434,11 +460,13 @@ export class EditorMediaModal extends Component {
 						filter={ this.state.filter || this.props.defaultFilter || this.getFirstEnabledFilter() }
 						enabledFilters={ this.props.enabledFilters }
 						search={ this.state.search }
+						source={ this.state.source }
 						onAddMedia={ this.onAddMedia }
 						onAddAndEditImage={ this.onAddAndEditImage }
 						onFilterChange={ this.onFilterChange }
 						onScaleChange={ this.onScaleChange }
 						onSearch={ this.onSearch }
+						onSourceChange={ this.onSourceChange }
 						onEditItem={ this.editItem }
 						fullScreenDropZone={ false }
 						single={ this.props.single }

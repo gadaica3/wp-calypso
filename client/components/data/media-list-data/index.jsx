@@ -26,6 +26,7 @@ module.exports = React.createClass( {
 
 	propTypes: {
 		siteId: React.PropTypes.number.isRequired,
+		source: React.PropTypes.string,
 		filter: React.PropTypes.string,
 		search: React.PropTypes.string
 	},
@@ -64,6 +65,11 @@ module.exports = React.createClass( {
 
 		if ( props.filter ) {
 			query.mime_type = utils.getMimeBaseTypeFromFilter( props.filter );
+		}
+
+		if ( props.source ) {
+			query.source = props.source;
+			query.path = 'recent';
 		}
 
 		return query;
