@@ -46,6 +46,7 @@ export class WebPreviewContent extends Component {
 		this.setIframeUrl = this.setIframeUrl.bind( this );
 		this.setLoaded = this.setLoaded.bind( this );
 		this.handleMessage = this.handleMessage.bind( this );
+		this.focusIfNeeded = this.focusIfNeeded.bind( this );
 	}
 
 	componentWillMount() {
@@ -90,6 +91,10 @@ export class WebPreviewContent extends Component {
 			debug( 'removing iframe contents' );
 			this.setIframeMarkup( '' );
 		}
+		// Focus preview when showing modal
+		if ( this.props.showPreview && ! prevProps.showPreview && this.state.loaded ) {
+			this.focusIfNeeded();
+		}
 	}
 
 	handleMessage( e ) {
@@ -102,6 +107,9 @@ export class WebPreviewContent extends Component {
 			switch ( data.type ) {
 				case 'link':
 					page( data.payload.replace( 'https://wordpress.com', '' ) );
+					if ( typeof this.props.onClose === 'function' ) {
+						this.props.onClose();
+					}
 					return;
 				case 'close':
 					if ( typeof this.props.onClose === 'function' ) {
@@ -110,6 +118,14 @@ export class WebPreviewContent extends Component {
 					return;
 			}
 		} catch ( err ) {}
+	}
+
+	focusIfNeeded() {
+		// focus content unless we are running in closed modal or on empty page
+		if ( this.iframe.contentWindow && this.state.iframeUrl !== 'about:blank' ) {
+			debug( 'focusing iframe contents' );
+			this.iframe.contentWindow.focus();
+		}
 	}
 
 	setIframeMarkup( content ) {
@@ -124,7 +140,7 @@ export class WebPreviewContent extends Component {
 	}
 
 	setIframeUrl( iframeUrl ) {
-		if ( ! this.iframe || this.props.showPreview === false ) {
+		if ( ! this.iframe || ( ! this.props.showPreview && this.props.isModalWindow ) ) {
 			return;
 		}
 
@@ -167,11 +183,7 @@ export class WebPreviewContent extends Component {
 		}
 		this.setState( { loaded: true } );
 
-		// focus content unless we are running in closed modal
-		if ( this.iframe.contentWindow && this.props.showPreview !== false ) {
-			debug( 'focusing iframe contents' );
-			this.iframe.contentWindow.focus();
-		}
+		this.focusIfNeeded();
 	}
 
 	render() {
@@ -259,6 +271,8 @@ WebPreviewContent.propTypes = {
 	hasSidebar: React.PropTypes.bool,
 	// Called after user switches device
 	onDeviceUpdate: React.PropTypes.func,
+	// Flag that differentiates modal window from inline embeds
+	isModalWindow: React.PropTypes.bool
 };
 
 WebPreviewContent.defaultProps = {
@@ -272,6 +286,7 @@ WebPreviewContent.defaultProps = {
 	onClose: noop,
 	onDeviceUpdate: noop,
 	hasSidebar: false,
+	isModalWindow: false,
 };
 
 export default connect( null, { recordTracksEvent } )( localize( WebPreviewContent ) );
