@@ -9,6 +9,7 @@ import noop from 'lodash/noop';
 import page from 'page';
 import shallowCompare from 'react-addons-shallow-compare';
 import { v4 as uuid } from 'uuid';
+import addQueryArgs from 'lib/route/add-query-args';
 
 /**
  * Internal dependencies
@@ -151,8 +152,10 @@ export class WebPreviewContent extends Component {
 
 		debug( 'setIframeUrl', iframeUrl );
 		try {
-			// TODO: proper qs manipulation
-			this.iframe.contentWindow.location.replace( iframeUrl + '&calypso_token=' + this.previewId );
+			const newUrl = iframeUrl === 'about:blank'
+				? iframeUrl
+				: addQueryArgs( { calypso_token: this.previewId }, iframeUrl );
+			this.iframe.contentWindow.location.replace( newUrl );
 			this.setState( {
 				loaded: false,
 				iframeUrl: iframeUrl,
