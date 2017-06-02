@@ -23,7 +23,7 @@ import { recordTracksEvent } from 'state/analytics/actions';
 
 const debug = debugModule( 'calypso:web-preview' );
 
-export class WebPreview extends Component {
+export class WebPreviewContent extends Component {
 	constructor( props ) {
 		super( props );
 
@@ -62,10 +62,10 @@ export class WebPreview extends Component {
 		if ( this.props.previewMarkup ) {
 			this.setIframeMarkup( this.props.previewMarkup );
 		}
-		// if ( this.props.showPreview ) {
-		// 	document.documentElement.classList.add( 'no-scroll', 'is-previewing' );
-		// }
-		// this.props.setPreviewShowing( this.props.showPreview );
+
+		if ( typeof this.props.onDeviceUpdate === 'function' ) {
+			this.props.onDeviceUpdate( this.state.device );
+		}
 	}
 
 	componentWillUnmount() {
@@ -98,9 +98,15 @@ export class WebPreview extends Component {
 			if ( data.channel !== 'preview-' + this.previewId ) {
 				return;
 			}
+			debug( 'message from iframe', data );
 			switch ( data.type ) {
 				case 'link':
 					page( data.payload.replace( 'https://wordpress.com', '' ) );
+					return;
+				case 'close':
+					if ( typeof this.props.onClose === 'function' ) {
+						this.props.onClose();
+					}
 					return;
 			}
 		} catch ( err ) {}
@@ -118,7 +124,7 @@ export class WebPreview extends Component {
 	}
 
 	setIframeUrl( iframeUrl ) {
-		if ( ! this.iframe ) {
+		if ( ! this.iframe || this.props.showPreview === false ) {
 			return;
 		}
 
@@ -142,6 +148,10 @@ export class WebPreview extends Component {
 		this.setState( { device } );
 
 		this.props.recordTracksEvent( 'calypso_web_preview_select_viewport_device', { device } );
+
+		if ( typeof this.props.onDeviceUpdate === 'function' ) {
+			this.props.onDeviceUpdate( device );
+		}
 	}
 
 	setLoaded() {
@@ -156,6 +166,12 @@ export class WebPreview extends Component {
 			debug( 'preview loaded for url:', this.state.iframeUrl );
 		}
 		this.setState( { loaded: true } );
+
+		// focus content unless we are running in closed modal
+		if ( this.iframe.contentWindow && this.props.showPreview !== false ) {
+			debug( 'focusing iframe contents' );
+			this.iframe.contentWindow.focus();
+		}
 	}
 
 	render() {
@@ -209,7 +225,7 @@ export class WebPreview extends Component {
 	}
 }
 
-WebPreview.propTypes = {
+WebPreviewContent.propTypes = {
 	// Display the preview
 	showPreview: PropTypes.bool,
 	// Show external link button (only if there is a previewUrl)
@@ -241,9 +257,11 @@ WebPreview.propTypes = {
 	iframeTitle: PropTypes.string,
 	// Makes room for a sidebar if desired
 	hasSidebar: React.PropTypes.bool,
+	// Called after user switches device
+	onDeviceUpdate: React.PropTypes.func,
 };
 
-WebPreview.defaultProps = {
+WebPreviewContent.defaultProps = {
 	showExternal: true,
 	showClose: true,
 	showSEO: true,
@@ -252,7 +270,8 @@ WebPreview.defaultProps = {
 	previewMarkup: null,
 	onLoad: noop,
 	onClose: noop,
+	onDeviceUpdate: noop,
 	hasSidebar: false,
 };
 
-export default connect( null, { recordTracksEvent } )( localize( WebPreview ) );
+export default connect( null, { recordTracksEvent } )( localize( WebPreviewContent ) );
