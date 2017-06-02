@@ -117,6 +117,9 @@ export class WebPreviewContent extends Component {
 						this.props.onClose();
 					}
 					return;
+				case 'partially-loaded':
+					this.setLoaded();
+					return;
 			}
 		} catch ( err ) {}
 	}
@@ -174,6 +177,10 @@ export class WebPreviewContent extends Component {
 	}
 
 	setLoaded() {
+		if ( this.state.loaded ) {
+			debug( 'already loaded' );
+			return;
+		}
 		if ( ! this.state.iframeUrl && ! this.props.previewMarkup ) {
 			debug( 'preview loaded, but nothing to show' );
 			return;
